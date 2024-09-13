@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petshop
+  labels:
+    app: petshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: petshop
+  template:
+    metadata:
+      labels:
+        app: petshop
+    spec:
+      containers:
+      - name: petshop-container
+        image: rashed271202/petshop:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DJANGO_SETTINGS_MODULE
+          value: "petshop.settings"
+        - name: django-insecure--6=8*h+y-+r1ohyy2z#yobw!rx8fy_1w2q*%#56274i*dta1-b
+          valueFrom:
+            secretKeyRef:
+              name: django-secret
+              key: django-insecure--6=8*h+y-+r1ohyy2z#yobw!rx8fy_1w2q*%#56274i*dta1-b
+        volumeMounts:
+        - name: static-files
+          mountPath: /app/static
+        - name: media-files
+          mountPath: /app/media
+      volumes:
+      - name: static-files
+        persistentVolumeClaim:
+          claimName: static-pvc
+      - name: media-files
+        persistentVolumeClaim:
+          claimName: media-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petshop-service
+spec:
+  selector:
+    app: petshop
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: static-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
